@@ -1,2 +1,2 @@
-*.o
-scan_test
+./*/*.o
+./*/scan_test
