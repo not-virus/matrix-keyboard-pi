@@ -13,6 +13,8 @@
 #include "keymap.h"
 #include "scankeys.h"
 
+#define MAX_ACTIVE_KEYS 104 // Don't think it would even be possible to tell
+
 /*  MAY NOT BE NECESSARY
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,13 +27,21 @@ int main()
         return 1;
     }
 
+    printf("GPIO setup successful.\n");
+
     /* Set all pins as output */
     for (int pin_index = 0; pin_index < NUM_PINS; pin_index++)
     {
         pinMode(ALL_PINS[pin_index], OUTPUT);
     }
 
-    read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS);
+    size_t numActiveKeys = 0;
+    int activeKeys[MAX_ACTIVE_KEYS][2];
 
+    int tmp = read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, activeKeys, &numActiveKeys);
+
+    printf("\nTmp: %d\n", numActiveKeys);
+    
+    printf("\n");
     return 0;
 }

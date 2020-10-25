@@ -1,6 +1,8 @@
 #ifndef CONNECTIONS_H
 #define CONNECTIONS_H
 
+#include <stddef.h>
+
 #define COL_A 14
 #define COL_B 15
 #define COL_C 18
