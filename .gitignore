@@ -1,2 +1,17 @@
-./*/*.o
-./*/scan_test
+# whole repo
+*.o
+!*.c
+!*.h
+!Makefile
+
+# ./scantest
+scantest/scan_test
+
+# ./gpiotest
+#   pass
+
+# ./electronics/KeyboardControllerConnections
+electronics/KeyboardControllerConnections/eagle.epf
+electronics/KeyboardControllerConnections/Keyboard_ribbon_connections.s#*
+!electronics/KeyboardControllerConnections/*.sch
+!electronics/KeyboardControllerConnections/*.brd
