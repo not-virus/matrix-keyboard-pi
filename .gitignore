@@ -12,6 +12,6 @@ scantest/scan_test
 
 # ./electronics/KeyboardControllerConnections
 electronics/KeyboardControllerConnections/eagle.epf
-electronics/KeyboardControllerConnections/Keyboard_ribbon_connections.s#*
+electronics/KeyboardControllerConnections/*.s\#*
 !electronics/KeyboardControllerConnections/*.sch
 !electronics/KeyboardControllerConnections/*.brd
