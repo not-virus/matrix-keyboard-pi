@@ -1,3 +1,7 @@
+/**
+ * (C) Cameron Krueger, 2020
+ */
+
 #include "scankeys.h"
 
 int read_matrix(const int ROWS[], const size_t NUM_ROWS,
@@ -26,12 +30,8 @@ int read_matrix(const int ROWS[], const size_t NUM_ROWS,
     for (int colIndex = 0; colIndex < NUM_COLS; colIndex++)
     {
 
-        printf("Here 5\n");
-
         // Save time by eliminating repeated array accesses
         int currentColumn = COLS[colIndex];
-
-        printf("Here 6\n");
 
         // If a column is LOW, a key has been pressed
         if (digitalRead(currentColumn) == LOW)
@@ -51,24 +51,18 @@ int read_matrix(const int ROWS[], const size_t NUM_ROWS,
                 pullUpDnControl(ROWS[rowIndex], PUD_UP);
             }
 
-            printf("Here 7\n");
-            
             for (size_t rowIndex = 0; rowIndex < NUM_ROWS; rowIndex++)
             {
-
-                printf("Here 8\n");
+                // If current row is pulled LOW, add row, column pair to
+                //  activeIndicies
                 if (digitalRead(ROWS[rowIndex]) == LOW)
                 {
-                    printf("Here 9 %d\n", *numActiveIndicies);
                     activeIndicies[*numActiveIndicies][0] = currentColumn;
                     activeIndicies[*numActiveIndicies][1] = ROWS[rowIndex];
                     (*numActiveIndicies)++;
-                    printf("Here\n");
                 }
             }
 
-            printf("Here 2\n");
-            
             // Change all rows to OUTPUT LOW
             for (size_t rowIndex = 0; rowIndex < NUM_ROWS; rowIndex++)
             {
@@ -82,11 +76,7 @@ int read_matrix(const int ROWS[], const size_t NUM_ROWS,
             pullUpDnControl(currentColumn, PUD_UP);
         }
 
-        printf("Here 3\n");
-
     }
-
-    printf("Here 4\n");
 
     return *numActiveIndicies;
 }
