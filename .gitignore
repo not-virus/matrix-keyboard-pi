@@ -4,10 +4,10 @@
 !*.h
 !Makefile
 
-# ./scantest
-scantest/scan_test
+# ./src/scantest
+src/scantest/scan_test
 
-# ./gpiotest
+# ./src/gpiotest
 #   pass
 
 # ./electronics/KeyboardControllerConnections

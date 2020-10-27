@@ -61,11 +61,17 @@ int main()
     size_t numActiveKeys = 0;
     int activeKeys[MAX_ACTIVE_KEYS][2];
 
-    int tmp = read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, activeKeys, &numActiveKeys);
+    int tmp = read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, activeKeys,
+                          &numActiveKeys);
 
     printf("\nNum active indicies: %d\n", numActiveKeys);
 
-    printf("First detected index: (%d, %d)\n", activeKeys[0][0], activeKeys[0][1]);
+    /* Print all active indicies */
+    for (int curIndex = 0; curIndex < numActiveKeys; curIndex++)
+    {
+        printf("Detected index #%d: (%d, %d)\n", curIndex + 1,
+                activeKeys[curIndex][0], activeKeys[curIndex][1]);
+    }
     
     printf("\n");
     return 0;
