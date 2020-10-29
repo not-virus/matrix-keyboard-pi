@@ -94,7 +94,6 @@ int read_matrix(const unsigned short ROWS[], const size_t NUM_ROWS,
 /**
  * Turns a keyboard LED on.  Assumes lightPin has already been set to OUTPUT.
  */
-/*
 void keyboard_light_on(const unsigned short LED_PIN)
 {
     // If common anode, set pin LOW. Otherwise, set HIGH.
@@ -106,12 +105,11 @@ void keyboard_light_on(const unsigned short LED_PIN)
         #error "Warning! LEDS_COM_(ANODE/CATHODE) was not defined! Cannot control LEDs."
     #endif
     
-}*/
+}
 
 /**
  * Turns a keyboard LED off.  Assumes lightPin has already been set to OUTPUT.
  */
-/*
 void keyboard_light_off(const unsigned short LED_PIN)
 {
     // If common anode, set pin HIGH. Otherwise, set LOW.

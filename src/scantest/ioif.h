@@ -10,8 +10,8 @@
  * Created 25 October 2020
  */
 
-#ifndef SCANKEYS_H
-#define SCANKEYS_H
+#ifndef IOIF_H
+#define IOIF_H
 
 #include <stddef.h>
 #include <stdio.h>
@@ -21,11 +21,8 @@ int read_matrix(const unsigned short ROWS[], const size_t NUM_ROWS,
                 const unsigned short COLS[], const size_t NUM_COLS,
                 unsigned short activeIndicies[][2], size_t* numActiveIndicies);
 
-/*
-
 void keyboard_light_on(const unsigned short lightPin);
 
 void keyboard_light_off(const unsigned short lightPin);
-
 
 #endif

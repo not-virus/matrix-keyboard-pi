@@ -67,9 +67,9 @@ int main()
     }
 
     // Set all lock LEDs to off state
-    /*keyboard_light_off(LED_CAPS_LOCK);
+    keyboard_light_off(LED_CAPS_LOCK);
     keyboard_light_off(LED_SCRL_LOCK);
-    keyboard_light_off(LED_NUM_LOCK);*/
+    keyboard_light_off(LED_NUM_LOCK);
 
     /* MAIN LOOP */
 
@@ -92,6 +92,7 @@ int main()
             {
                 printf("Detected index #%u: (%u, %u)\n", curActiveKey + 1,
                 activeKeys[curActiveKey][0], activeKeys[curActiveKey][1]);
+                printf("Key: %s", KEYMAP[curKey].keyName);
             }
 
         }
