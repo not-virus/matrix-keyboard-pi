@@ -11,9 +11,9 @@
 
 int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS)
 {
-    const char* fname = "./TestFile";
+    const char* fname = "/dev/hidg0";
     FILE* fptr;
-    if ((fptr = fopen(fname, "w")) == NULL)
+    if ((fptr = fopen(fname, "wb")) == NULL)
     {
         fprintf(stderr, "Error! Couldn't open %s for writing.", fname);
         // Return error
@@ -27,12 +27,13 @@ int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS)
     buf[0] = (char)mods;
     for (size_t i = 0; i < NUM_KEYS; i++)
     {
-        buf[i++] = (char)keys[i];
+        buf[i+2] = (char)keys[i];
     }
 
     // Print data to file
     fprintf(fptr, "%c%c%c%c%c%c%c%c", buf[0], buf[1], buf[2], buf[3],
              buf[4], buf[5], buf[6], buf[7]);
+    fflush(fptr);
     fclose(fptr);
     return 0;
 }

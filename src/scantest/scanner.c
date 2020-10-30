@@ -103,7 +103,7 @@ int main()
                 printf("Key: %s\n", KEYMAP[curKey].keyName);
                 
                 // Add modifier
-                activeModifiers = activeModifiers | (1 << 3);//KEYMAP[curKey].modBit);
+                activeModifiers |= KEYMAP[curKey].modBit;
 
                 int isInActiveKeys = 0;
                 // check to see if current key is already in list of active keys
@@ -139,9 +139,9 @@ int main()
     printf("\n");
 
     printf("\n");
+    delay(3000);
     usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
     usb_send_data(0, activeKeys_codesOnly, 0);
-    printf("\n");
 
     printf("\n");
     return 0;
