@@ -15,8 +15,6 @@
 
 int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS);
 
-/*
-void usb_receive_data(char* data);
-*/
+int usb_receive_data(char buf[8]);
 
 #endif

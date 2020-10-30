@@ -5,6 +5,8 @@
 
 enum KEY_IDS
 {
+    KEY_EMPTY,
+    KEY_ERROR,
     KEY_ESC,
     KEY_F1,
     KEY_F2,
@@ -125,10 +127,13 @@ struct Key {
 #define LED_SCRL_LOCK ROW_9
 #define LED_NUM_LOCK ROW_6
 
+#define INDEX_ERROR_KEY 0 // First key in matrix is error code
+
 // Format for keymap is based on matrix defined in connections.h:
 //  i.e. if you have 
-const size_t KEYMAP_COUNT = 101;
+const size_t KEYMAP_COUNT = 103;
 const struct Key KEYMAP[] = {
+    {0, 0, KEY_ERROR, "ERROR", 0x01, 0x00},
     {COL_H, ROW_14, KEY_ESC, "ESCAPE", 0x29, 0x00},
     {COL_G, ROW_14, KEY_F1, "F1", 0x3A, 0x00}, 
     {COL_F, ROW_14, KEY_F2, "F2", 0x3B, 0x00},

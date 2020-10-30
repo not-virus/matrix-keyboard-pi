@@ -26,7 +26,7 @@
 #include <stdlib.h>
 #include <stdint.h>*/
 
-void bin(unsigned char n);
+void bin(char n);
 
 int main()
 {
@@ -40,7 +40,8 @@ int main()
 /*
     pinMode(LED_CAPS_LOCK, OUTPUT);
     //printf("Light test started on pin %d (BCM_GPIO)\n", COL_C);
-    printf("Light test started on %s, (BCM_GPIO pin %d)\n", "Caps lock", LED_CAPS_LOCK);
+    printf("Light test started on %s, (BCM_GPIO pin %d)\n", "Caps lock",
+        LED_CAPS_LOCK);
 
     for (int i = 0; i < 10; i++)
     {
@@ -52,7 +53,8 @@ int main()
         delay(250);
     }
 
-    printf("Light test over. Please disconnect LED and press Enter to continue.\n");
+    printf("Light test over. Please disconnect LED and press Enter to
+        continue.\n");
     getchar();
     printf("Continuing in ");
     for (int i = 3; i > 0; i--)
@@ -75,8 +77,114 @@ int main()
     keyboard_light_off(LED_SCRL_LOCK);
     keyboard_light_off(LED_NUM_LOCK);
 
-    /* MAIN LOOP */
+    /*
+    size_t numActiveKeysLast = 0;
+    struct Key activeKeysLast[MAX_ACTIVE_KEYS];
+    unsigned char activeModifiersLast = 0x00;
+    */
 
+    char buf[] = {0,0,0,0,0,0,0,0};
+    char bufLast[] = {0,0,0,0,0,0,0,0};
+
+    unsigned char tmp[] = {0,0,0,0,0,0,0,0};
+
+    // Send nothing
+    usb_send_data(0, tmp, 0);
+
+    /* MAIN LOOP */
+    while (1)
+    {
+        size_t numPressedKeys = 0;
+        unsigned short pressedKeys[MAX_PRESSED_KEYS][2];
+
+        // Scan matrix
+        read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, pressedKeys,
+                                &numPressedKeys);
+
+        size_t numActiveKeys = 0;
+        struct Key activeKeys[MAX_ACTIVE_KEYS];
+        unsigned char activeKeys_codesOnly[MAX_ACTIVE_KEYS];
+        unsigned char activeModifiers = 0x00; // Reset active modifiers
+
+        // Agregate pressed keys into activeKeys and activeModifiers
+        for (size_t curPressedKey = 0; curPressedKey < numPressedKeys;
+            curPressedKey++)
+        {
+            for (size_t curKey = 0; curKey < KEYMAP_COUNT; curKey++)
+            {
+                if (KEYMAP[curKey].hwCol == pressedKeys[curPressedKey][0]
+                    && KEYMAP[curKey].hwRow == pressedKeys[curPressedKey][1])
+                {                    
+                    // Add modifier
+                    activeModifiers |= KEYMAP[curKey].modBit;
+
+                    int isInActiveKeys = 0;
+                    // Check to see if current key is already in list of active
+                    //  keys
+                    for (size_t i = 0; i < numActiveKeys; i++)
+                    {
+                        isInActiveKeys = (activeKeys[i].keyID
+                            == KEYMAP[curKey].keyID);
+                        if (isInActiveKeys) break;
+                    }
+
+                    // If not already present, add to list of active keys
+                    if (!isInActiveKeys && numActiveKeys < MAX_ACTIVE_KEYS)
+                    {
+                        activeKeys[numActiveKeys] = KEYMAP[curKey];
+                        activeKeys_codesOnly[numActiveKeys]
+                            = KEYMAP[curKey].hidCode;
+                        numActiveKeys++;
+                    }
+                    // If more than MAX_ACTIVE_KEYS (6) pressed, send error
+                    //  code by setting all to 0x01
+                    else if (numActiveKeys >= MAX_ACTIVE_KEYS)
+                    {
+                        for (int i = 0; i < MAX_ACTIVE_KEYS; i++)
+                        {
+                            activeKeys[i] = KEYMAP[INDEX_ERROR_KEY];
+                        }
+                    }
+                }
+            }
+        }
+
+        if (numActiveKeys != 0)
+        {
+            usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
+            usb_receive_data(buf);
+        }
+        else
+        {
+            usb_send_data(0, activeKeys_codesOnly, 0);
+        }
+
+        printf("1 Received %02x \n", buf[0]);
+        printf("2 Received %02x \n", buf[1]);
+        printf("3 Received %02x \n", buf[2]);
+        printf("4 Received %02x \n", buf[3]);
+        printf("5 Received %02x \n", buf[4]);
+        printf("Halting...\n");
+        return 0;
+
+        /*
+        for (int i = 0; i < 8; i++)
+        {
+            bufLast[i] = buf[i];
+        }
+        */
+
+        /*
+        activeModifiersLast = activeModifiers;
+        numActiveKeysLast = numActiveKeys;
+        for (int i = 0; i < MAX_ACTIVE_KEYS; i++)
+        {
+            activeKeysLast[i] = activeKeys[i];
+        }*/
+    }
+    return 0;
+}
+    /*
     size_t numPressedKeys = 0;
     unsigned short pressedKeys[MAX_PRESSED_KEYS][2];
 
@@ -90,7 +198,7 @@ int main()
     unsigned char activeKeys_codesOnly[MAX_ACTIVE_KEYS];
     unsigned char activeModifiers = 0x00; // Reset active modifiers
 
-    /* Print all pressed keys */
+    // Print all pressed keys
     for (size_t curPressedKey = 0; curPressedKey < numPressedKeys; curPressedKey++)
     {
         for (size_t curKey = 0; curKey < KEYMAP_COUNT; curKey++)
@@ -144,10 +252,10 @@ int main()
     usb_send_data(0, activeKeys_codesOnly, 0);
 
     printf("\n");
-    return 0;
-}
+    */
 
-void bin(unsigned char n)
+
+void bin(char n)
 {
     unsigned i;
     for (i = 1 << 7; i > 0; i = i / 2)
