@@ -159,13 +159,42 @@ int main()
             usb_send_data(0, activeKeys_codesOnly, 0);
         }
 
+
+        // LED control
+        if (buf[0] & 0b1)
+        {
+            keyboard_light_on(LED_NUM_LOCK);
+        }
+        else
+        {
+            keyboard_light_off(LED_NUM_LOCK);
+        }
+
+        if (buf[0] & 0b10)
+        {
+            keyboard_light_on(LED_CAPS_LOCK);
+        }
+        else
+        {
+            keyboard_light_off(LED_CAPS_LOCK);
+        }
+        
+        if (buf[0] & 0b100)
+        {
+            keyboard_light_on(LED_SCRL_LOCK);
+        }
+        else
+        {
+            keyboard_light_off(LED_SCRL_LOCK);
+        }
+
+        /*
         printf("1 Received %02x \n", buf[0]);
         printf("2 Received %02x \n", buf[1]);
-        printf("3 Received %02x \n", buf[2]);
-        printf("4 Received %02x \n", buf[3]);
-        printf("5 Received %02x \n", buf[4]);
         printf("Halting...\n");
+        usb_send_data(0, tmp, 0);
         return 0;
+        */
 
         /*
         for (int i = 0; i < 8; i++)
