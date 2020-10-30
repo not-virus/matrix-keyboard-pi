@@ -3,7 +3,7 @@
  * ioif - input/output interface
  *  ("ioctl" is an established syscall, so "ioif" it is)
  * 
- * This file contains methods for interfacing with the matrix keyboard and
+ * This file contains functions for interfacing with the matrix keyboard and
  *  other hardware through the GPIO
  * 
  * (C) Cameron Krueger, 2020

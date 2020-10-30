@@ -16,13 +16,17 @@
 #include "connections.h"  // Must come before keymap
 #include "keymap.h"
 #include "ioif.h"
+#include "usbif.h"
 
-#define MAX_ACTIVE_KEYS 102 // Don't think it would even be possible to tell
+#define MAX_PRESSED_KEYS 102 // Don't think it would even be possible to tell
+#define MAX_ACTIVE_KEYS 6
 
 /*  MAY NOT BE NECESSARY
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>*/
+
+void bin(unsigned char n);
 
 int main()
 {
@@ -73,31 +77,79 @@ int main()
 
     /* MAIN LOOP */
 
+    size_t numPressedKeys = 0;
+    unsigned short pressedKeys[MAX_PRESSED_KEYS][2];
+
+    read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, pressedKeys,
+                          &numPressedKeys);
+
+    printf("\nNum pressed indicies: %u\n", numPressedKeys);
+
     size_t numActiveKeys = 0;
-    unsigned short activeKeys[MAX_ACTIVE_KEYS][2];
+    struct Key activeKeys[MAX_ACTIVE_KEYS];
+    unsigned char activeKeys_codesOnly[MAX_ACTIVE_KEYS];
+    unsigned char activeModifiers = 0x00; // Reset active modifiers
 
-    int tmp = read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, activeKeys,
-                          &numActiveKeys);
-
-    printf("\nNum active indicies: %u\n", numActiveKeys);
-    printf("%d\n", tmp);
-
-    /* Print all active indicies */
-    for (int curActiveKey = 0; curActiveKey < numActiveKeys; curActiveKey++)
+    /* Print all pressed keys */
+    for (size_t curPressedKey = 0; curPressedKey < numPressedKeys; curPressedKey++)
     {
-        for (int curKey = 0; curKey < KEYMAP_COUNT; curKey++)
+        for (size_t curKey = 0; curKey < KEYMAP_COUNT; curKey++)
         {
-            if (KEYMAP[curKey].hwCol == activeKeys[curActiveKey][0]
-                && KEYMAP[curKey].hwRow == activeKeys[curActiveKey][1])
+            if (KEYMAP[curKey].hwCol == pressedKeys[curPressedKey][0]
+                && KEYMAP[curKey].hwRow == pressedKeys[curPressedKey][1])
             {
-                printf("Detected index #%u: (%u, %u)\n", curActiveKey + 1,
-                activeKeys[curActiveKey][0], activeKeys[curActiveKey][1]);
-                printf("Key: %s", KEYMAP[curKey].keyName);
-            }
+                printf("Detected index #%u: (%u, %u)\n", curPressedKey + 1,
+                pressedKeys[curPressedKey][0], pressedKeys[curPressedKey][1]);
+                printf("Key: %s\n", KEYMAP[curKey].keyName);
+                
+                // Add modifier
+                activeModifiers = activeModifiers | (1 << 3);//KEYMAP[curKey].modBit);
 
+                int isInActiveKeys = 0;
+                // check to see if current key is already in list of active keys
+                for (size_t i = 0; i < numActiveKeys; i++)
+                {
+                    isInActiveKeys = (activeKeys[i].keyID == KEYMAP[curKey].keyID);
+                    printf("%d\n", isInActiveKeys);
+                    if (isInActiveKeys) break;
+                }
+
+                // If not already present, add to list of active keys
+                if (!isInActiveKeys && numActiveKeys < MAX_ACTIVE_KEYS)
+                {
+                    activeKeys[numActiveKeys] = KEYMAP[curKey];
+                    activeKeys_codesOnly[numActiveKeys] = KEYMAP[curKey].hidCode;
+                    numActiveKeys++;
+                }
+            }
         }
     }
-    
+
+    // Print active modifiers
+    printf("Active modifiers: 0x%02x  0b", activeModifiers);
+    bin(activeModifiers);
+    printf("\n");
+
+    // Print list of active keys
+    printf("Active keys: ");
+    for (size_t i = 0; i < numActiveKeys; i++)
+    {
+        printf("%s, ", activeKeys[i].keyName);
+    }
+    printf("\n");
+
+    printf("\n");
+    usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
+    usb_send_data(0, activeKeys_codesOnly, 0);
+    printf("\n");
+
     printf("\n");
     return 0;
+}
+
+void bin(unsigned char n)
+{
+    unsigned i;
+    for (i = 1 << 7; i > 0; i = i / 2)
+        (n & i)? printf("1"): printf("0");
 }
