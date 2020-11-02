@@ -4,8 +4,8 @@
 !*.h
 !Makefile
 
-# ./src/scantest
-src/scantest/scanner
+# ./src/main
+src/main/scanner
 
 # ./src/gpiotest
 #   pass

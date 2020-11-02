@@ -133,6 +133,52 @@ int main()
             }
         }
 
+        /* HOTFIX, PLEASE REVISE!! */
+
+        // Remove TAB key if W, A, and D are being pressed and remove Q key if
+        // W, S, and D are being pressed.
+        char wPressed = 0;
+        char aPressed = 0;
+        char sPressed = 0;
+        char dPressed = 0;
+        for (int i = 0; i < numActiveKeys; i++)
+        {
+            if (activeKeys_codesOnly[i] == 0x1A)
+            {
+                wPressed = 1;
+            }
+            if (activeKeys_codesOnly[i] == 0x04)
+            {
+                aPressed = 1;
+            }
+            if (activeKeys_codesOnly[i] == 0x16)
+            {
+                sPressed = 1;
+            }
+            if (activeKeys_codesOnly[i] == 0x07)
+            {
+                dPressed = 1;
+            }
+        }
+        if ((wPressed && aPressed && dPressed)
+            || (wPressed && sPressed && dPressed))
+        {
+            for (int i = 0; i < numActiveKeys; i++)
+            {
+                if (activeKeys_codesOnly[i] == 0x2B)   // If TAB key
+                {
+                    activeKeys_codesOnly[i] = EMPTY_KEY.hidCode;
+                }
+                if (activeKeys_codesOnly[i] == 0x14)   // If Q key
+                {
+                    activeKeys_codesOnly[i] = EMPTY_KEY.hidCode;
+                }
+            }
+        }
+
+        /* END HOTFIX */
+
+
         // Send key data packet to host
         if (numActiveKeys != 0)
         {

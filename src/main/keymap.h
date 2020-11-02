@@ -137,6 +137,8 @@ struct Key {
 
 #define INDEX_ERROR_KEY 0 // First key in matrix is error code
 
+const struct Key EMPTY_KEY = {0, 0, KEY_EMPTY, "EMPTY", 0x0, 0x0};
+
 // Format for keymap is based on matrix defined in connections.h:
 //  i.e. if you have 
 const size_t KEYMAP_COUNT = 103;
