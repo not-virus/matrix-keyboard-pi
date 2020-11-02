@@ -26,7 +26,7 @@ int read_matrix(const unsigned short ROWS[], const size_t NUM_ROWS,
         pullUpDnControl(COLS[colIndex], PUD_UP);
     }
     // Set all rows to OUTPUTs and set output value to LOW
-    for (size_t rowIndex = 0; rowIndex < NUM_COLS; rowIndex++)
+    for (size_t rowIndex = 0; rowIndex < NUM_ROWS; rowIndex++)
     {
         pullUpDnControl(ROWS[rowIndex], PUD_OFF);
         pinMode(ROWS[rowIndex], OUTPUT);
@@ -44,7 +44,7 @@ int read_matrix(const unsigned short ROWS[], const size_t NUM_ROWS,
         // If a column is LOW, a key has been pressed
         if (digitalRead(currentColumn) == LOW)
         {
-            // Change the column to OUTPUT LOW and change rows to INPUTs
+            // Change the column to OUTPUT LOW
             pullUpDnControl(currentColumn, PUD_OFF);
             pinMode(currentColumn, OUTPUT);
             digitalWrite(currentColumn, LOW);
