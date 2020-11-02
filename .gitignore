@@ -5,7 +5,7 @@
 !Makefile
 
 # ./src/scantest
-src/scantest/scan_test
+src/scantest/scanner
 
 # ./src/gpiotest
 #   pass
