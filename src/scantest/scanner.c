@@ -91,6 +91,10 @@ int main()
     // Send nothing
     usb_send_data(0, tmp, 0);
 
+    // Flag set when a packet has been written to the hidg0 device file and the
+    //  packet data needs to be cleared
+    unsigned char clearNeeded = 0;
+
     /* MAIN LOOP */
     while (1)
     {
@@ -151,13 +155,50 @@ int main()
 
         if (numActiveKeys != 0)
         {
-            usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
-            usb_receive_data(buf);
+            unsigned char readSuccess = usb_receive_data(buf);
+            unsigned char writeSuccess = usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
+
+            if (writeSuccess != 0)
+            {
+                printf("Write error: %d\n", writeSuccess);
+                return 2;
+            }
+            if (readSuccess != 0)
+            {
+                printf("Read error: %d\n", readSuccess);
+                return 2;
+            }
+
+            clearNeeded = 1;
+        }
+        else if (clearNeeded)
+        {
+            unsigned char readSuccess = usb_receive_data(buf);
+            unsigned char writeSuccess = usb_send_data(0, activeKeys_codesOnly, 0);
+            
+            if (writeSuccess != 0)
+            {
+                printf("Write error: %d\n", writeSuccess);
+                return 2;
+            }
+            if (readSuccess != 0)
+            {
+                printf("Read error: %d\n", readSuccess);
+                return 2;
+            }
+
+            clearNeeded = 0;
         }
         else
         {
-            usb_send_data(0, activeKeys_codesOnly, 0);
+            unsigned char readSuccess = usb_receive_data(buf);
+            if (readSuccess != 0)
+            {
+                printf("Read error: %d\n", readSuccess);
+                return 2;
+            }
         }
+        
 
 
         // LED control
