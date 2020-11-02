@@ -12,9 +12,14 @@
 
 #include <stdio.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <errno.h>
+#include <poll.h>
 
-int usb_send_data(FILE* fptr, unsigned char mods, unsigned char* keys, size_t NUM_KEYS);
+int usb_send_data(int fd, unsigned char mods, unsigned char* keys, size_t NUM_KEYS);
 
-int usb_receive_data(FILE* fptr, char buf[8]);
+int usb_receive_data(int fd, fd_set* readfds, char buf[8]);
 
 #endif

@@ -11,7 +11,12 @@
  */
 
 #include <wiringPi.h>
+#include <stdio.h>
 #include <stddef.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <unistd.h>
 
 #include "connections.h"  // Must come before keymap
 #include "keymap.h"
@@ -30,6 +35,7 @@ void bin(char n);
 
 int main()
 {
+    // GPIO Setup
     if (wiringPiSetupGpio() == -1)
     {
         return 1;
@@ -37,43 +43,19 @@ int main()
 
     printf("GPIO setup successful.\n");
 
-    const char* fname = "/dev/hidg0";//"TestFile";
-    FILE* fptr;
-    if ((fptr = fopen(fname, "w+")) == NULL)
+
+    // Device file setup
+    const char* fname = "/dev/hidg0";
+    int fd = 0;
+    int outReportLen;
+    fd_set readfds;
+
+    if ((fd = open(fname, O_RDWR, 0666)) == -1)
     {
-        fprintf(stderr, "Error! Couldn't open %s for reading.\n", fname);
-        // Return error
-        return 1;
+        perror(fname);
+        return 1;  // Return with error
     }
 
-/*
-    pinMode(LED_CAPS_LOCK, OUTPUT);
-    //printf("Light test started on pin %d (BCM_GPIO)\n", COL_C);
-    printf("Light test started on %s, (BCM_GPIO pin %d)\n", "Caps lock",
-        LED_CAPS_LOCK);
-
-    for (int i = 0; i < 10; i++)
-    {
-        //digitalWrite(COL_C, HIGH);
-        keyboard_light_on(ROW_15);
-        delay(250);
-        //digitalWrite(COL_C, LOW);
-        keyboard_light_off(ROW_15);
-        delay(250);
-    }
-
-    printf("Light test over. Please disconnect LED and press Enter to
-        continue.\n");
-    getchar();
-    printf("Continuing in ");
-    for (int i = 3; i > 0; i--)
-    {
-        printf("%d... ", i);
-        fflush(stdout);
-        delay(1000);
-    }
-    printf("\nContinuing.\n");
-*/
 
     // Set all pins as output
     for (int pin_index = 0; pin_index < NUM_PINS; pin_index++)
@@ -86,27 +68,21 @@ int main()
     keyboard_light_off(LED_SCRL_LOCK);
     keyboard_light_off(LED_NUM_LOCK);
 
-    /*
-    size_t numActiveKeysLast = 0;
-    struct Key activeKeysLast[MAX_ACTIVE_KEYS];
-    unsigned char activeModifiersLast = 0x00;
-    */
-
     char buf[] = {0,0,0,0,0,0,0,0};
-    char bufLast[] = {0,0,0,0,0,0,0,0};
-
-    unsigned char tmp[] = {0,0,0,0,0,0,0,0};
-
-    // Send nothing
-    usb_send_data(fptr, 0, tmp, 0);
 
     // Flag set when a packet has been written to the hidg0 device file and the
     //  packet data needs to be cleared
     unsigned char clearNeeded = 0;
 
+    // Size of output report from device in bytes
+    int outputReportSize = 0;
+
     /* MAIN LOOP */
     while (1)
     {
+        FD_ZERO(&readfds);
+        FD_SET(fd, &readfds);
+
         size_t numPressedKeys = 0;
         unsigned short pressedKeys[MAX_PRESSED_KEYS][2];
 
@@ -162,37 +138,19 @@ int main()
             }
         }
 
-
-        // Exit on 'q' keypress
-        unsigned char terminate = 0;
-        for (int i = 0; i < numActiveKeys; i++)
-        {
-            if (activeKeys[i].keyID == KEYMAP[39].keyID)
-            {
-                terminate = 1;
-            }
-        }
-        if (terminate)
-        {
-            usb_send_data(fptr, 0, activeKeys_codesOnly, 0);
-            fclose(fptr);
-            return 7;
-        }
-
-
         if (numActiveKeys != 0)
         {
-            unsigned char readSuccess = 0;//usb_receive_data(fptr, buf);
-            unsigned char writeSuccess = usb_send_data(fptr, activeModifiers, activeKeys_codesOnly, numActiveKeys);
+            outputReportSize = usb_receive_data(fd, &readfds, buf);
+            unsigned char writeSuccess = usb_send_data(fd, activeModifiers, activeKeys_codesOnly, numActiveKeys);
 
             if (writeSuccess != 0)
             {
                 printf("Write error: %d\n", writeSuccess);
                 return 2;
             }
-            if (readSuccess != 0 && readSuccess != 1)
+            if (outputReportSize < 0)
             {
-                printf("Read error: %d\n", readSuccess);
+                printf("Read error: %d\n", outputReportSize);
                 return 2;
             }
 
@@ -200,17 +158,17 @@ int main()
         }
         else if (clearNeeded)
         {
-            unsigned char readSuccess = 0;//usb_receive_data(fptr, buf);
-            unsigned char writeSuccess = usb_send_data(fptr, 0, activeKeys_codesOnly, 0);
+            outputReportSize = usb_receive_data(fd, &readfds, buf);
+            unsigned char writeSuccess = usb_send_data(fd, 0, activeKeys_codesOnly, 0);
             
             if (writeSuccess != 0)
             {
                 printf("Write error: %d\n", writeSuccess);
                 return 2;
             }
-            if (readSuccess != 0 && readSuccess != 1)
+            if (outputReportSize < 0)
             {
-                printf("Read error: %d\n", readSuccess);
+                printf("Read error: %d\n", outputReportSize);
                 return 2;
             }
 
@@ -218,22 +176,13 @@ int main()
         }
         else
         {
-            //unsigned char readSuccess = usb_receive_data(fptr, buf);
-            /*(if (readSuccess != 0 && readSuccess != 1)
+            outputReportSize = usb_receive_data(fd, &readfds, buf);
+            if (outputReportSize < 0)
             {
-                printf("Read error: %d\n", readSuccess);
+                printf("Read error: %d\n", outputReportSize);
                 return 2;
-            }*/
+            }
         }
-
-        /*if (buf[0] != 0 && buf[0] != bufLast[0])
-        {
-            printf("Output report byte 1: ");
-            bin(buf[0]);
-            printf("\n");
-        }*/
-
-        //bufLast[0] = buf[0];
 
         // LED control
         if (buf[0] & 0b1)
@@ -262,110 +211,8 @@ int main()
         {
             keyboard_light_off(LED_SCRL_LOCK);
         }
-
-
-        /*
-        printf("1 Received %02x \n", buf[0]);
-        printf("2 Received %02x \n", buf[1]);
-        printf("Halting...\n");
-        usb_send_data(0, tmp, 0);
-        return 0;
-        */
-
-        /*
-        for (int i = 0; i < 8; i++)
-        {
-            bufLast[i] = buf[i];
-        }
-        */
-
-        /*
-        activeModifiersLast = activeModifiers;
-        numActiveKeysLast = numActiveKeys;
-        for (int i = 0; i < MAX_ACTIVE_KEYS; i++)
-        {
-            activeKeysLast[i] = activeKeys[i];
-        }*/
     }
-    fflush(fptr);
-    fclose(fptr);
 
+    close(fd);
     return 0;
-}
-    /*
-    size_t numPressedKeys = 0;
-    unsigned short pressedKeys[MAX_PRESSED_KEYS][2];
-
-    read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, pressedKeys,
-                          &numPressedKeys);
-
-    printf("\nNum pressed indicies: %u\n", numPressedKeys);
-
-    size_t numActiveKeys = 0;
-    struct Key activeKeys[MAX_ACTIVE_KEYS];
-    unsigned char activeKeys_codesOnly[MAX_ACTIVE_KEYS];
-    unsigned char activeModifiers = 0x00; // Reset active modifiers
-
-    // Print all pressed keys
-    for (size_t curPressedKey = 0; curPressedKey < numPressedKeys; curPressedKey++)
-    {
-        for (size_t curKey = 0; curKey < KEYMAP_COUNT; curKey++)
-        {
-            if (KEYMAP[curKey].hwCol == pressedKeys[curPressedKey][0]
-                && KEYMAP[curKey].hwRow == pressedKeys[curPressedKey][1])
-            {
-                printf("Detected index #%u: (%u, %u)\n", curPressedKey + 1,
-                pressedKeys[curPressedKey][0], pressedKeys[curPressedKey][1]);
-                printf("Key: %s\n", KEYMAP[curKey].keyName);
-                
-                // Add modifier
-                activeModifiers |= KEYMAP[curKey].modBit;
-
-                int isInActiveKeys = 0;
-                // check to see if current key is already in list of active keys
-                for (size_t i = 0; i < numActiveKeys; i++)
-                {
-                    isInActiveKeys = (activeKeys[i].keyID == KEYMAP[curKey].keyID);
-                    printf("%d\n", isInActiveKeys);
-                    if (isInActiveKeys) break;
-                }
-
-                // If not already present, add to list of active keys
-                if (!isInActiveKeys && numActiveKeys < MAX_ACTIVE_KEYS)
-                {
-                    activeKeys[numActiveKeys] = KEYMAP[curKey];
-                    activeKeys_codesOnly[numActiveKeys] = KEYMAP[curKey].hidCode;
-                    numActiveKeys++;
-                }
-            }
-        }
-    }
-
-    // Print active modifiers
-    printf("Active modifiers: 0x%02x  0b", activeModifiers);
-    bin(activeModifiers);
-    printf("\n");
-
-    // Print list of active keys
-    printf("Active keys: ");
-    for (size_t i = 0; i < numActiveKeys; i++)
-    {
-        printf("%s, ", activeKeys[i].keyName);
-    }
-    printf("\n");
-
-    printf("\n");
-    delay(3000);
-    usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
-    usb_send_data(0, activeKeys_codesOnly, 0);
-
-    printf("\n");
-    */
-
-
-void bin(char n)
-{
-    unsigned i;
-    for (i = 1 << 7; i > 0; i = i / 2)
-        (n & i)? printf("1"): printf("0");
 }
