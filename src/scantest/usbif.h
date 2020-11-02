@@ -13,8 +13,8 @@
 #include <stdio.h>
 #include <stddef.h>
 
-int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS);
+int usb_send_data(FILE* fptr, unsigned char mods, unsigned char* keys, size_t NUM_KEYS);
 
-int usb_receive_data(char buf[8]);
+int usb_receive_data(FILE* fptr, char buf[8]);
 
 #endif

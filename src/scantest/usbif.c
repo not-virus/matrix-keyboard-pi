@@ -15,17 +15,8 @@
 #include <unistd.h>
 #include <errno.h>
 
-int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS)
+int usb_send_data(FILE* fptr, unsigned char mods, unsigned char* keys, size_t NUM_KEYS)
 {
-    const char* fname = "/dev/hidg0";//"/dev/hidg0";
-    FILE* fptr;
-    if ((fptr = fopen(fname, "wb")) == NULL)
-    {
-        fprintf(stderr, "Error! Couldn't open %s for writing.\n", fname);
-        // Return error
-        return 1;
-    }
-
     // Make packet buffer, initialize all fields to zero
     char buf[] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
 
@@ -40,52 +31,42 @@ int usb_send_data(unsigned char mods, unsigned char* keys, size_t NUM_KEYS)
     fprintf(fptr, "%c%c%c%c%c%c%c%c", buf[0], buf[1], buf[2], buf[3],
              buf[4], buf[5], buf[6], buf[7]);
     fflush(fptr);
-    fclose(fptr);
+    //fclose(fptr);
     return 0;
 }
 
-int usb_receive_data(char buf[8])
+int usb_receive_data(FILE* fptr, char buf[8])
 {
-    const char* fname = "/dev/hidg0";
-    FILE* fptr;
-    if ((fptr = fopen(fname, "r")) == NULL)
-    {
-        fprintf(stderr, "Error! Couldn't open %s for reading.\n", fname);
-        // Return error
-        return 1;
-    }
-
-
-
     if (fptr != NULL) {
-        int retval = fseek (fptr, 0, SEEK_END);
-        if (retval != -1)
+        fflush(fptr);
+        fseek(fptr, 0, SEEK_SET);
+        if (fseek(fptr, 0, SEEK_SET) != -1)
         {
-            //printf("fseek ret val: %d\n", retval);
-
-            if (retval != 0)
-            {
-                fclose(fptr);
-                return 5;
-            }
+            // This shouldn't work, but I'm going to try anyway
+            fread(&buf[0], sizeof(buf[0]), 1, fptr);
+            return 0;
 
             int size = ftell(fptr);
 
             if (size == 0) {
                 //printf("File is empty\n");
+                return 1;
             }
             else
             {
-                //printf("Found data!\n");
+                printf("Found data!\n");
+/*
                 char c;
                 size_t bufIndex = 0;
                 while ((c = fgetc(fptr)) != EOF && bufIndex < 8)
                 {
                     buf[bufIndex] = c;
                     bufIndex++;
-                    //printf("%c, ", c);
+                    printf("%c, ", c);
                 }
-                //printf("\n");
+                printf("\n");
+*/
+                return 0;
             }
         } 
         else
@@ -96,14 +77,16 @@ int usb_receive_data(char buf[8])
             fclose(fptr);
             return 2;
         }
+
+    return 3;
     }
 
     // Read data from file
     /*fscanf(fptr, "%c%c%c%c%c%c%c%c", buf[0], buf[1], buf[2], buf[3], buf[4],
             buf[5], buf[6], buf[7]);*/
 
-    fflush(fptr);
-    fclose(fptr);
+    //fflush(fptr);
+    //fclose(fptr);
 
     /*
     int fd = 0;

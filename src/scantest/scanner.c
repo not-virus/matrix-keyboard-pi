@@ -37,6 +37,15 @@ int main()
 
     printf("GPIO setup successful.\n");
 
+    const char* fname = "/dev/hidg0";//"TestFile";
+    FILE* fptr;
+    if ((fptr = fopen(fname, "w+")) == NULL)
+    {
+        fprintf(stderr, "Error! Couldn't open %s for reading.\n", fname);
+        // Return error
+        return 1;
+    }
+
 /*
     pinMode(LED_CAPS_LOCK, OUTPUT);
     //printf("Light test started on pin %d (BCM_GPIO)\n", COL_C);
@@ -89,7 +98,7 @@ int main()
     unsigned char tmp[] = {0,0,0,0,0,0,0,0};
 
     // Send nothing
-    usb_send_data(0, tmp, 0);
+    usb_send_data(fptr, 0, tmp, 0);
 
     // Flag set when a packet has been written to the hidg0 device file and the
     //  packet data needs to be cleared
@@ -153,17 +162,35 @@ int main()
             }
         }
 
+
+        // Exit on 'q' keypress
+        unsigned char terminate = 0;
+        for (int i = 0; i < numActiveKeys; i++)
+        {
+            if (activeKeys[i].keyID == KEYMAP[39].keyID)
+            {
+                terminate = 1;
+            }
+        }
+        if (terminate)
+        {
+            usb_send_data(fptr, 0, activeKeys_codesOnly, 0);
+            fclose(fptr);
+            return 7;
+        }
+
+
         if (numActiveKeys != 0)
         {
-            unsigned char readSuccess = usb_receive_data(buf);
-            unsigned char writeSuccess = usb_send_data(activeModifiers, activeKeys_codesOnly, numActiveKeys);
+            unsigned char readSuccess = 0;//usb_receive_data(fptr, buf);
+            unsigned char writeSuccess = usb_send_data(fptr, activeModifiers, activeKeys_codesOnly, numActiveKeys);
 
             if (writeSuccess != 0)
             {
                 printf("Write error: %d\n", writeSuccess);
                 return 2;
             }
-            if (readSuccess != 0)
+            if (readSuccess != 0 && readSuccess != 1)
             {
                 printf("Read error: %d\n", readSuccess);
                 return 2;
@@ -173,15 +200,15 @@ int main()
         }
         else if (clearNeeded)
         {
-            unsigned char readSuccess = usb_receive_data(buf);
-            unsigned char writeSuccess = usb_send_data(0, activeKeys_codesOnly, 0);
+            unsigned char readSuccess = 0;//usb_receive_data(fptr, buf);
+            unsigned char writeSuccess = usb_send_data(fptr, 0, activeKeys_codesOnly, 0);
             
             if (writeSuccess != 0)
             {
                 printf("Write error: %d\n", writeSuccess);
                 return 2;
             }
-            if (readSuccess != 0)
+            if (readSuccess != 0 && readSuccess != 1)
             {
                 printf("Read error: %d\n", readSuccess);
                 return 2;
@@ -191,15 +218,22 @@ int main()
         }
         else
         {
-            unsigned char readSuccess = usb_receive_data(buf);
-            if (readSuccess != 0)
+            //unsigned char readSuccess = usb_receive_data(fptr, buf);
+            /*(if (readSuccess != 0 && readSuccess != 1)
             {
                 printf("Read error: %d\n", readSuccess);
                 return 2;
-            }
+            }*/
         }
-        
 
+        /*if (buf[0] != 0 && buf[0] != bufLast[0])
+        {
+            printf("Output report byte 1: ");
+            bin(buf[0]);
+            printf("\n");
+        }*/
+
+        //bufLast[0] = buf[0];
 
         // LED control
         if (buf[0] & 0b1)
@@ -229,6 +263,7 @@ int main()
             keyboard_light_off(LED_SCRL_LOCK);
         }
 
+
         /*
         printf("1 Received %02x \n", buf[0]);
         printf("2 Received %02x \n", buf[1]);
@@ -252,6 +287,9 @@ int main()
             activeKeysLast[i] = activeKeys[i];
         }*/
     }
+    fflush(fptr);
+    fclose(fptr);
+
     return 0;
 }
     /*
