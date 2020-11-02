@@ -1,8 +1,5 @@
 /**
  * ioif.c
- * ioif - input/output interface
- *  ("ioctl" is an established syscall, so "ioif" it is)
- * 
  * This is the implementation file for interfacing with the matrix keyboard
  *  and other hardware through the GPIO
  * 

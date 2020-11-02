@@ -1,8 +1,5 @@
 /**
  * ioif.h
- * ioif - input/output interface
- *  ("ioctl" is an established syscall, so "ioif" it is)
- * 
  * This file contains functions for interfacing with the matrix keyboard and
  *  other hardware through the GPIO
  * 
@@ -13,9 +10,9 @@
 #ifndef IOIF_H
 #define IOIF_H
 
+#include <wiringPi.h>
 #include <stddef.h>
 #include <stdio.h>
-#include <wiringPi.h>
 
 int read_matrix(const unsigned short ROWS[], const size_t NUM_ROWS,
                 const unsigned short COLS[], const size_t NUM_COLS,

@@ -1,6 +1,14 @@
 #ifndef KEYMAP_H
 #define KEYMAP_H
 
+/**
+ * keymap.h
+ * This file defines the keymap, along with some other useful arrays
+ * 
+ * (C) Cameron Krueger, 2020
+ * Created ? October 2020
+ **/
+
 #include "connections.h"
 
 enum KEY_IDS
@@ -204,7 +212,7 @@ const struct Key KEYMAP[] = {
     {COL_H, ROW_3, KEY_L, "L", 0x0F, 0x00},
     {COL_G, ROW_3, KEY_SEMI, ";", 0x33, 0x00},
     {COL_F, ROW_3, KEY_QUOTE, "'", 0x34, 0x00},
-    {COL_E, ROW_2, KEY_ENTER, "ENTER", 0x28, 0x00},
+    {COL_E, ROW_3, KEY_ENTER, "ENTER", 0x28, 0x00},
     {COL_D, ROW_3, KEY_NUM_4, "NUMPAD 4", 0x5C, 0x00},
     {COL_C, ROW_3, KEY_NUM_5, "NUMPAD 5", 0x5D, 0x00},
     {COL_B, ROW_3, KEY_NUM_6, "NUMPAD 6", 0x5E, 0x00},
@@ -232,7 +240,7 @@ const struct Key KEYMAP[] = {
     {COL_D, ROW_5, KEY_RALT, "RIGHT ALT", 0xE6, 0b01000000},
 //    {, , KEY_RWIN, "RIGHT WINDOWS", 0xE7, 0b10000000},
 //    {, , KEY_MENU, "MENU", 0b00000000},
-    {COL_C, ROW_19, KEY_RCTRL, "RIGHT CTRL", 0b00010000},
+    {COL_C, ROW_19, KEY_RCTRL, "RIGHT CTRL", 0xE4, 0b00010000},
     {COL_H, ROW_1, KEY_ARLEFT, "ARROW LEFT", 0x50, 0x00},
     {COL_G, ROW_1, KEY_ARDOWN, "ARROW DOWN", 0x51, 0x00},
     {COL_F, ROW_1, KEY_ARRIGHT, "ARROW RIGHT", 0x4F, 0x00},

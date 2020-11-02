@@ -2,9 +2,9 @@
  * scan_test.c
  * 
  * This software is designed for the Raspberry Pi Zero W v1.1
- * This is a testing driver for a matrix keyboard scanner.  It returns the
- *  information regarding the keys pressed on a matrix keyboard connected to
- *  the GPIO.
+ * This is a USB HID device controller driver for a matrix keyboard.  It scans
+ *  a keyboard matrix conndcted to the GPIO and sends the typed values to the
+ *  /dev/hidg0 raw file for a device set up as a USB HID Linux gadget.
  * 
  * (C) Cameron Krueger, 2020
  * Created 25 October 2020
@@ -23,13 +23,8 @@
 #include "ioif.h"
 #include "usbif.h"
 
-#define MAX_PRESSED_KEYS 102 // Don't think it would even be possible to tell
+#define MAX_PRESSED_KEYS 102
 #define MAX_ACTIVE_KEYS 6
-
-/*  MAY NOT BE NECESSARY
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>*/
 
 void bin(char n);
 
@@ -40,7 +35,6 @@ int main()
     {
         return 1;
     }
-
     printf("GPIO setup successful.\n");
 
 
@@ -53,7 +47,7 @@ int main()
     if ((fd = open(fname, O_RDWR, 0666)) == -1)
     {
         perror(fname);
-        return 1;  // Return with error
+        return 2;  // Return with error
     }
 
 
@@ -68,6 +62,7 @@ int main()
     keyboard_light_off(LED_SCRL_LOCK);
     keyboard_light_off(LED_NUM_LOCK);
 
+    // The read buffer. Will hold data read in from host device output reports
     char buf[] = {0,0,0,0,0,0,0,0};
 
     // Flag set when a packet has been written to the hidg0 device file and the
@@ -88,7 +83,7 @@ int main()
 
         // Scan matrix
         read_matrix(ROWS, NUM_ROWS, COLS, NUM_COLS, pressedKeys,
-                                &numPressedKeys);
+                    &numPressedKeys);
 
         size_t numActiveKeys = 0;
         struct Key activeKeys[MAX_ACTIVE_KEYS];
@@ -138,10 +133,12 @@ int main()
             }
         }
 
+        // Send key data packet to host
         if (numActiveKeys != 0)
         {
             outputReportSize = usb_receive_data(fd, &readfds, buf);
-            unsigned char writeSuccess = usb_send_data(fd, activeModifiers, activeKeys_codesOnly, numActiveKeys);
+            unsigned char writeSuccess = usb_send_data(fd, activeModifiers,
+                activeKeys_codesOnly, numActiveKeys);
 
             if (writeSuccess != 0)
             {
@@ -156,10 +153,12 @@ int main()
 
             clearNeeded = 1;
         }
+        // Send "no data" packet, if necessary
         else if (clearNeeded)
         {
             outputReportSize = usb_receive_data(fd, &readfds, buf);
-            unsigned char writeSuccess = usb_send_data(fd, 0, activeKeys_codesOnly, 0);
+            unsigned char writeSuccess = usb_send_data(fd, 0,
+                activeKeys_codesOnly, 0);
             
             if (writeSuccess != 0)
             {
@@ -174,6 +173,7 @@ int main()
 
             clearNeeded = 0;
         }
+        // Read output report, if one is available
         else
         {
             outputReportSize = usb_receive_data(fd, &readfds, buf);
