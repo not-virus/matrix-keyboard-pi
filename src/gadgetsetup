@@ -1,3 +1,11 @@
+################################################################################
+# This script based on code written by Rafael Medina.
+#
+# Rafael's home page: https://www.rmedgar.com/
+# Link to this script: https://gist.github.com/rmed/0d11b7225b3b772bb0dd89108ee93df0
+#
+# NOTE: This code may be out of date with Rafael's current version.
+################################################################################
 #!/bin/bash
 echo "dtoverlay=dwc2" | sudo tee -a /boot/config.txt
 echo "dwc2" | sudo tee -a /etc/modules
